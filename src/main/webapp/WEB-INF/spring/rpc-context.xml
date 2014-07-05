@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	 <bean class="org.springframework.remoting.rmi.RmiServiceExporter"
+		p:service-ref="mistEmployeeService"
+		p:serviceName="RMIMistEmployeeService"
+		p:serviceInterface="org.yonko.mist.service.EmployeeService"/> 
+		
+	<!-- Решение на основе контроллера Spring MVC, т.к. у Hessian нету реестра, в отличии 
+		от RMI(у механизна удаленных взаимодействий RMI есть реестр) -->
+	<bean id="hessianMistService" 
+		class="org.springframework.remoting.caucho.HessianServiceExporter"
+		p:service-ref="mistEmployeeService"
+		p:serviceInterface="org.yonko.mist.service.EmployeeService"/>
+		
+	<bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="mappings">
+			<!-- <value>/employee.service=hessianMistService</value> -->
+			<value>/employee.service=httpInvocerEmployeeService</value>
+		</property>
+	</bean>
+	
+	<bean id="burlapEmployeeService" 
+		class="org.springframework.remoting.caucho.BurlapServiceExporter"
+		p:service-ref="mistEmployeeService"
+		p:serviceInterface="org.yonko.mist.service.EmployeeService"/> <!-- Остальные настройки теже
+																			что и для Hession -->
+		
+	<bean id="httpInvocerEmployeeService"
+		class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter"
+		p:service-ref="mistEmployeeService"
+		p:serviceInterface="org.yonko.mist.service.EmployeeService"/>
+		
+	<!-- <bean class="org.springframework.remoting.jaxws.SimpleJaxWsServiceExporter"
+		p:baseAddress="http://localhost:8080/services/"/> -->
+
+</beans>

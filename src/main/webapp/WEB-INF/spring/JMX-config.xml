@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+	
+	<!-- Создание экспортера с ручным включением в него экспортирумых в MBean компонентов -->
+	<!--  <bean id="mbeanExporter" class="org.springframework.jmx.export.MBeanExporter">
+		<property name="beans">
+			<map>
+				<entry key="employee:name=EmployeeController" 
+					value-ref="employeeController"/>
+			</map>
+		</property>
+		<property name="assembler" ref="methodInfoAssembler"/>
+		<property name="server" ref="mbeanServer"/>
+	</bean>
+	
+	<context:mbean-server/>
+	
+	<bean id="methodInfoAssembler" 
+		class="org.springframework.jmx.export.assembler.MethodNameBasedMBeanInfoAssembler"
+		p:managedMethods="getEmployeesPerPage, setEmployeesPerPage"/> -->
+		
+	<!-- <bean id="methodExclusionInfoAssembler" 
+		class="org.springframework.jmx.export.assembler.MethodExclusionMBeanInfoAssembler"
+		p:ignoredMethods="игнорируемые методы"/> -->
+	
+	<!-- Создает в контексте бин экспортера компонентов MBean
+			и ищет классы, отмеченные аннотациями jmx, а затем экспортирует их как управляемые компоненты
+			Стоит также отметить,что если выбран один из бинов для экспортирования других бинов в MBean/.
+			то другой бин(даже если он объявлен в конфиге) работать не будет -->
+	 <context:mbean-export registration="replaceExisting"/>
+	 
+	<!--  <bean id="mbeanExporter"
+     	class="org.springframework.jmx.export.annotation.AnnotationMBeanExporter">
+     		<property name="notificationListenerMappings">
+     			<map>
+					<entry key="employee:name=EmployeeNotificationListener">
+						<bean class="org.yonko.mist.jmx.EmployeeNotificationListener" />
+					</entry>
+				</map>
+     		</property>
+     </bean>	 -->
+	 	 
+	  <bean class="org.springframework.jmx.support.ConnectorServerFactoryBean"
+	 	p:serviceUrl="service:jmx:rmi://localhost/jndi/rmi://localhost:1099/employee"/> 
+	 	
+	 <bean class="org.springframework.remoting.rmi.RmiRegistryFactoryBean" 
+	 	p:port="1099"/>
+	 	
+	 		<!--Клиентский код  -->
+	 <bean id="mBeanServerClient" class="org.springframework.jmx.support.MBeanServerConnectionFactoryBean"
+		p:serviceUrl="service:jmx:rmi://localhost/jndi/rmi://localhost:1099/employee"/>
+	
+	<bean id="jmxClient" class="org.yonko.mist.jmx.JmxClient">
+		<property name="mBeanServerClient" ref="mBeanServerClient"/>
+	</bean>
+		
+</beans>

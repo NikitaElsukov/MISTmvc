@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/security 
+	http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
+	<http access-denied-page="/error403.jsp" use-expressions="true" auto-config="false">
+		<intercept-url pattern="/login.jsp" requires-channel="https" 
+			access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN', 'ROLE_ANONIMOUS')"/>	
+		<intercept-url pattern="/by" access="hasAnyRole('ROLE_USER', 'ROLE_ANONIMOUS', 'ROLE_ADMIN')"/>
+		<intercept-url pattern="/index" access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')"/>
+		<intercept-url pattern="/search" access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')"/>
+		<intercept-url pattern="/employee.service" requires-channel="http"
+			access="hasAnyRole('ROLE_USER', 'ROLE_ANONIMOUS', 'ROLE_ADMIN')"/>
+		<intercept-url pattern="/passports" requires-channel="http" 
+			access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN', 'ROLE_ANONIMOUS')"/>	
+		<intercept-url pattern="/passports/*" requires-channel="http" 
+			access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN', 'ROLE_ANONIMOUS')"/>	
+		<intercept-url pattern="/**" requires-channel="https" access="hasRole('ROLE_ADMIN')"/>
+		<form-login login-page="/login.jsp" default-target-url="/index"
+			authentication-failure-url="/login.jsp?error=true"/>
+		<logout logout-url="/logout" logout-success-url="/by"/>
+		<anonymous granted-authority="ROLE_ANONIMOUS" username="guest"/>
+		<http-basic/>
+		<remember-me/>
+		<port-mappings>
+			<port-mapping http="8080" https="8443"/>
+		</port-mappings>
+	</http>
+	
+	<global-method-security secured-annotations="enabled" pre-post-annotations="enabled"/>
+	
+	<authentication-manager>
+		<authentication-provider user-service-ref="jdbcUserService"/>
+	</authentication-manager>
+	
+	<!--  Аутентификация посредством базы данных -->
+	<jdbc-user-service id="jdbcUserService" data-source-ref="dataSource" 
+		users-by-username-query="select users.username, users.password, CASE users.lock WHEN 1 THEN 'true' ELSE 'false' END 'lock' from users where username = ?"
+		authorities-by-username-query="select users.username, roles.role from users, roles where users.username = ?
+			 and users.role = roles.id"/>
+	
+	<!--  Аутентификация посредством внутреннего репозитория (примитивная, норм для тестирования)
+			<user-service id="userService">
+				<user name="admin" password="nikita" authorities="ROLE_USER, ROLE_ADMIN"/>
+				<user name="user1" password="1111" authorities="ROLE_USER"/>
+			</user-service>  -->
+	
+	<!--  Аутентификация посредством LDAP (примитивная, норм для тестирования)	
+	 <authentication-manager alias="LDAPManager">
+		<ldap-authentication-provider user-search-filter="(uid={0})"
+			group-search-filter="member={0}"/>
+	</authentication-manager> -->
+					
+	<beans:import resource="data.xml"/>
+</beans:beans>
